@@ -11,13 +11,6 @@ function App() {
 
     if (window.PDFViewerApplication){
       console.log("PDFJS is ready");
-      window.PDFViewerApplication.baseUrl = file;
-      window.PDFViewerApplication.initializedPromise.then(function() {
-        window.PDFViewerApplication.eventBus.on('pagerendered', function(e) {
-            // The viewer is done loading, put custom init code here.
-            console.log("PDFJS is rendered");
-        });
-    });
     } 
     else{
       console.log("PDFJS was not loaded already");
@@ -29,8 +22,18 @@ function App() {
   
   
   function processLoad(){
-   
-    
+    window.PDFViewerApplication.initializedPromise.then(function() {
+      window.PDFViewerApplication.eventBus.on('pagerendered', function(e) {
+          // The viewer is done loading, put custom init code here.
+          console.log("PDFJS is rendered");
+          var file = 'https://arxiv.org/pdf/quant-ph/0410100.pdf'; 
+          window.PDFViewerApplication.open({ url: file});
+      });
+      window.PDFViewerApplication.eventBus.on('documenterror', function(e) {
+        // The viewer is done loading, put custom init code here.
+        console.log(e);
+    });
+  });
 
   }
 
@@ -40,11 +43,12 @@ function App() {
       <meta charset="utf-8"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"></meta>
       <meta name="google" content="notranslate"></meta>
-    
+   
       <link rel="stylesheet" href="viewer.css"></link>
       
      
       <link rel="resource" type="application/l10n" href="locale/locale.properties"></link>
+      <button onClick={processLoad}>Load</button>
       <div id="outerContainer">
       <div id="sidebarContainer">
         <div id="toolbarSidebar">
