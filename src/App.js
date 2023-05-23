@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import './App.css';
 import './viewer.css'
 
@@ -6,15 +7,27 @@ import './viewer.css'
 function App() {
   
   React.useEffect(() =>{
+    if(window.PDFViewerApplication){
+      
+     
+        window.PDFViewerApplication.initializedPromise.then(function() {
+         
+          window.PDFViewerApplication.eventBus.on('pagerendered', function(e) {
+            // The viewer is done loading, put custom init code here.
+            console.log("PDFJS is rendered");
+          });
+          window.PDFViewerApplication.eventBus.on('documenterror', function(e) {
+          // The viewer is done loading, put custom init code here.
+            console.log(e);
+        });
+      });
+    }
+    document.addEventListener("webviewerloaded", async () => {
+  
    
-    var file = 'https://arxiv.org/pdf/quant-ph/0410100.pdf'; 
-
-    if (window.PDFViewerApplication){
-      console.log("PDFJS is ready");
-    } 
-    else{
-      console.log("PDFJS was not loaded already");
-    }   
+      window.PDFViewerApplicationOptions.set("viewerCssTheme", 2)       // 0=automatic theme, 1=light theme, 2=dark theme 
+      window.PDFViewerApplication._forceCssTheme()
+  })
    
   }, [])
   
@@ -22,20 +35,34 @@ function App() {
   
   
   function processLoad(){
-    window.PDFViewerApplication.initializedPromise.then(function() {
-      window.PDFViewerApplication.eventBus.on('pagerendered', function(e) {
-          // The viewer is done loading, put custom init code here.
-          console.log("PDFJS is rendered");
+        try{
           var file = 'https://arxiv.org/pdf/quant-ph/0410100.pdf'; 
-          window.PDFViewerApplication.open({ url: file});
-      });
-      window.PDFViewerApplication.eventBus.on('documenterror', function(e) {
-        // The viewer is done loading, put custom init code here.
-        console.log(e);
-    });
-  });
-
+          if(window.PDFViewerApplication){
+            window.PDFViewerApplicationOptions.set("viewerCssTheme", 2);
+            window.PDFViewerApplication._forceCssTheme();
+            window.PDFViewerApplication.open({ url: file});
+          }
+                  
+        }
+        catch(e){
+            console.log(e);
+        }
   }
+
+  function processTop(){
+    try{     
+      if(window.PDFViewerApplication){
+        window.PDFViewerApplication.page =1;
+      }
+              
+    }
+    catch(e){
+        console.log(e);
+    }
+}
+
+
+
 
   return (
 
@@ -44,11 +71,12 @@ function App() {
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"></meta>
       <meta name="google" content="notranslate"></meta>
    
-      <link rel="stylesheet" href="viewer.css"></link>
+     
       
      
       <link rel="resource" type="application/l10n" href="locale/locale.properties"></link>
       <button onClick={processLoad}>Load</button>
+      <button onClick={processTop}>Top</button>
       <div id="outerContainer">
       <div id="sidebarContainer">
         <div id="toolbarSidebar">
@@ -449,11 +477,14 @@ function App() {
     <div id="printContainer"></div>
 
     <input type="file" id="fileInput" class="hidden"></input> 
-     
+    <Helmet>
+      <script src="build/pdf.js"></script>
+      <script src="viewer.js"></script>
+    </Helmet>
     </>
     
   )
-  //return React.createElement("h1", {title: "This is the heading"}, "Heading");
+  
 }
 
 export default App;
